@@ -77,6 +77,7 @@ Useful endpoints:
 | --- | --- |
 | `/` | Game client |
 | `/healthz` | Health check returning `{ "ok": true }` |
+| `/stats` | Persistent global X/O win and loss totals |
 
 ## Fly.io deployment
 
@@ -87,6 +88,8 @@ flyctl deploy
 ```
 
 The deployed game is available at [tic-tac-toe-server-wandering-frost-3118.fly.dev](https://tic-tac-toe-server-wandering-frost-3118.fly.dev). The Fly app uses one machine in `dfw`; Fly no longer provisions new machines in `den`.
+
+The app uses `min_machines_running = 0`, so Fly stops the machine when idle and starts it for the next request. It mounts the encrypted `game_stats` volume at `/data` to retain all-time results. The current connection limits are 400 soft / 500 hard.
 
 ## Scaling note
 
