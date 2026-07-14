@@ -2,20 +2,16 @@
 
 This project is a deliberately small, real-time multiplayer game. It uses an authoritative WebSocket server: browsers only request actions, while the server owns the board, turn order, and outcome.
 
-```mermaid
-flowchart LR
-    A[Player A<br/>Browser] <-->|WSS: small JSON messages| F[Fly.io edge<br/>HTTPS + WebSocket]
-    B[Player B<br/>Browser] <-->|WSS: small JSON messages| F
-    F --> S[Node.js game server]
-    S --> R[(In-memory room map<br/>room code · board · turn · players)]
-    S --> H[/GET /healthz/]
-
-    classDef client fill:#e5eee7,stroke:#18231f,color:#18231f
-    classDef server fill:#d5a33d,stroke:#18231f,color:#18231f
-    classDef state fill:#fffdf7,stroke:#18231f,color:#18231f
-    class A,B client
-    class F,S server
-    class R,H state
+```text
+┌─────────────────┐        WSS         ┌──────────────┐
+│ Player A browser│ ────────────────┐  │              │
+└─────────────────┘                 │  │  Fly.io edge │
+                                    ├──│  + Node.js   │── In-memory room map
+┌─────────────────┐                 │  │  game server │   room code · board
+│ Player B browser│ ────────────────┘  │              │   turn · players
+└─────────────────┘        WSS         └──────┬───────┘
+                                                │
+                                           GET /healthz
 ```
 
 ## Request flow

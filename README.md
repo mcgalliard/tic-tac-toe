@@ -4,11 +4,10 @@ A tiny, real-time browser game for two players. Create a room, share its five-ch
 
 **Live demo:** [tic-tac-toe-server-wandering-frost-3118.fly.dev](https://tic-tac-toe-server-wandering-frost-3118.fly.dev)
 
-```mermaid
-flowchart LR
-  P1[Player browser] <-->|WebSocket| S[Authoritative Node.js server]
-  P2[Player browser] <-->|WebSocket| S
-  S --> R[In-memory rooms]
+```text
+Player browser ── WebSocket ──┐
+                              ├── Authoritative Node.js server ── In-memory rooms
+Player browser ── WebSocket ──┘
 ```
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the full system diagram, request flow, security controls, and scaling path.
