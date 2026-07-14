@@ -10,6 +10,7 @@ async function loadStats() {
   } catch { /* The game still works if statistics are temporarily unavailable. */ }
 }
 loadStats();
+document.addEventListener('visibilitychange', () => { if (!document.hidden && !menu.hidden) loadStats(); });
 
 for (let i = 0; i < 9; i++) { const b = document.createElement('button'); b.className = 'cell'; b.dataset.cell = i; b.setAttribute('aria-label', `Cell ${i + 1}`); b.onclick = () => send({ type: 'move', cell: i }); board.append(b); }
 function connect() {
@@ -22,6 +23,7 @@ function send(message) { if (socket?.readyState === WebSocket.OPEN) socket.send(
 function setNotice(text = '') { notice.textContent = text; }
 function handle(msg) {
   if (msg.type === 'error') return setNotice(msg.message);
+  if (msg.type === 'notice') return setNotice(msg.message);
   if (msg.type === 'joined') { mark = msg.mark; $('#code').textContent = msg.room; menu.hidden = true; game.hidden = false; setNotice(''); }
   if (msg.type === 'state') render(msg);
 }
@@ -29,6 +31,7 @@ function render(state) {
   current = state;
   [...board.children].forEach((cell, i) => { cell.textContent = state.board[i] || ''; cell.disabled = !!state.board[i] || state.turn !== mark || !!state.result || state.players < 2; });
   const result = state.result;
+  $('#player-count').textContent = `Players: ${state.players} / 2`;
   $('#status').textContent = state.players < 2 ? `You are ${mark}. Waiting for an opponent…` : result === 'draw' ? 'It’s a draw.' : result ? (result === mark ? 'You win!' : 'Your opponent wins.') : state.turn === mark ? 'Your turn' : 'Opponent’s turn';
   if (result) loadStats();
 }
@@ -37,4 +40,4 @@ $('#create').onclick = () => enter('create');
 $('#join').onclick = () => enter('join');
 $('#room').onkeydown = e => { if (e.key === 'Enter') enter('join'); };
 $('#restart').onclick = () => send({ type: 'restart' });
-$('#leave').onclick = () => { socket?.close(); menu.hidden = false; game.hidden = true; mark = null; setNotice(''); };
+$('#leave').onclick = () => { socket?.close(); menu.hidden = false; game.hidden = true; mark = null; setNotice(''); loadStats(); };

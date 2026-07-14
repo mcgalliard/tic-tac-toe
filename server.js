@@ -133,7 +133,10 @@ wss.on('connection', ws => {
       const code = typeof msg.room === 'string' ? msg.room.trim().toUpperCase() : '';
       const room = rooms.get(code);
       if (!room) return send(ws, { type: 'error', message: 'That room does not exist.' });
-      if (room.players.size >= 2) return send(ws, { type: 'error', message: 'That room is full.' });
+      if (room.players.size >= 2) {
+        for (const player of room.players.keys()) send(player, { type: 'notice', message: 'Room is full (2/2 players).' });
+        return send(ws, { type: 'error', message: 'That room is full (2/2 players). Try another room code.' });
+      }
       leave(ws); room.players.set(ws, 'O'); ws.room = code; ws.mark = 'O'; room.touchedAt = now;
       return send(ws, { type: 'joined', room: code, mark: 'O' }), broadcast(room);
     }
