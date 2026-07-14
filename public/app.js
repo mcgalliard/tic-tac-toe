@@ -24,7 +24,7 @@ function setNotice(text = '') { notice.textContent = text; }
 function handle(msg) {
   if (msg.type === 'error') return setNotice(msg.message);
   if (msg.type === 'notice') return setNotice(msg.message);
-  if (msg.type === 'joined') { mark = msg.mark; $('#code').textContent = msg.room; menu.hidden = true; game.hidden = false; setNotice(''); }
+  if (msg.type === 'joined') { mark = msg.mark; $('#code').textContent = msg.room; $('#player-count').textContent = `Players: ${msg.players} / 2`; menu.hidden = true; game.hidden = false; setNotice(''); }
   if (msg.type === 'state') render(msg);
 }
 function render(state) {

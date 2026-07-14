@@ -104,7 +104,7 @@ const server = http.createServer((req, res) => {
   const allowed = new Set(['index.html', 'app.js', 'style.css']);
   if (!allowed.has(file)) { res.writeHead(404); return res.end('Not found'); }
   const type = file.endsWith('.html') ? 'text/html' : file.endsWith('.js') ? 'text/javascript' : 'text/css';
-  res.writeHead(200, { 'content-type': `${type}; charset=utf-8`, 'cache-control': 'public, max-age=3600' });
+  res.writeHead(200, { 'content-type': `${type}; charset=utf-8`, 'cache-control': 'no-store' });
   fs.createReadStream(path.join(publicDir, file)).pipe(res);
 });
 
@@ -127,7 +127,7 @@ wss.on('connection', ws => {
       leave(ws);
       const room = newRoom();
       room.players.set(ws, 'X'); ws.room = room.code; ws.mark = 'X'; room.touchedAt = now;
-      return send(ws, { type: 'joined', room: room.code, mark: 'X' }), broadcast(room);
+      return send(ws, { type: 'joined', room: room.code, mark: 'X', players: room.players.size }), broadcast(room);
     }
     if (msg.type === 'join') {
       const code = typeof msg.room === 'string' ? msg.room.trim().toUpperCase() : '';
@@ -138,7 +138,7 @@ wss.on('connection', ws => {
         return send(ws, { type: 'error', message: 'That room is full (2/2 players). Try another room code.' });
       }
       leave(ws); room.players.set(ws, 'O'); ws.room = code; ws.mark = 'O'; room.touchedAt = now;
-      return send(ws, { type: 'joined', room: code, mark: 'O' }), broadcast(room);
+      return send(ws, { type: 'joined', room: code, mark: 'O', players: room.players.size }), broadcast(room);
     }
     if (msg.type === 'move') {
       const room = rooms.get(ws.room), cell = msg.cell;
