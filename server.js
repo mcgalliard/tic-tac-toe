@@ -13,11 +13,11 @@ const publicDir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'publi
 const statsFile = process.env.STATS_FILE;
 
 function readStats() {
-  const empty = { xWins: 0, oWins: 0 };
+  const empty = { xWins: 0, oWins: 0, ties: 0 };
   if (!statsFile) return empty;
   try {
     const saved = JSON.parse(fs.readFileSync(statsFile, 'utf8'));
-    return { xWins: Number.isSafeInteger(saved.xWins) ? saved.xWins : 0, oWins: Number.isSafeInteger(saved.oWins) ? saved.oWins : 0 };
+    return { xWins: Number.isSafeInteger(saved.xWins) ? saved.xWins : 0, oWins: Number.isSafeInteger(saved.oWins) ? saved.oWins : 0, ties: Number.isSafeInteger(saved.ties) ? saved.ties : 0 };
   } catch (error) {
     if (error.code !== 'ENOENT') console.error('Could not read game statistics:', error.message);
     return empty;
@@ -27,12 +27,13 @@ function readStats() {
 const stats = readStats();
 
 function publicStats() {
-  return { xWins: stats.xWins, xLosses: stats.oWins, oWins: stats.oWins, oLosses: stats.xWins };
+  return { xWins: stats.xWins, xLosses: stats.oWins, ties: stats.ties, oWins: stats.oWins, oLosses: stats.xWins };
 }
 
-function recordWin(mark) {
+function recordResult(mark) {
   if (mark === 'X') stats.xWins++;
   else if (mark === 'O') stats.oWins++;
+  else if (mark === 'draw') stats.ties++;
   if (!statsFile) return;
   const temporary = `${statsFile}.tmp`;
   try {
@@ -146,7 +147,7 @@ wss.on('connection', ws => {
       if (room.players.size !== 2 || winner(room.board) || room.turn !== ws.mark || room.board[cell]) return;
       room.board[cell] = ws.mark; room.turn = ws.mark === 'X' ? 'O' : 'X'; room.touchedAt = now;
       const result = winner(room.board);
-      if (result && result !== 'draw' && !room.resultRecorded) { room.resultRecorded = true; recordWin(result); }
+      if (result && !room.resultRecorded) { room.resultRecorded = true; recordResult(result); }
       broadcast(room);
     }
     if (msg.type === 'restart') {
