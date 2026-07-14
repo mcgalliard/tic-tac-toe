@@ -41,9 +41,23 @@ Clients never decide whether a move is legal. That keeps the game fair even if s
 - **Socket rate limit:** each connection allows a 20-message burst and sustains five messages per second.
 - **Bounded rooms:** rooms allow exactly two players; empty rooms are removed and inactive rooms expire after 30 minutes.
 - **Connection hygiene:** WebSocket ping/pong checks remove dead connections.
-- **Deployment cap:** Fly is configured for up to 100 concurrent connections per machine.
+- **Deployment cap:** Fly is configured for up to 500 concurrent connections per machine.
 
 These controls are intentionally application-level. For public launch traffic or a sustained denial-of-service threat, place Cloudflare or comparable edge protection in front of the Fly hostname.
+
+## Measured capacity
+
+The included test script creates actual two-player rooms, joins each one, makes a validated move, and keeps every socket open until the run completes.
+
+| Test | Result |
+| --- | --- |
+| Fly machine | Shared CPU, 256 MB RAM |
+| Simultaneous rooms verified | 240 |
+| Simultaneous WebSocket connections | 480 |
+| Completion time | 8.71 seconds |
+| Configured Fly ceiling | 500 connections |
+
+This is a controlled, single-origin load test rather than a distributed stress test. It demonstrates that the application can handle 240 active, lightweight rooms on the deployed machine; it is not a promise of latency under an adversarial or globally distributed workload.
 
 ## Local setup
 

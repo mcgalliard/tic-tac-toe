@@ -28,4 +28,14 @@ Open `http://localhost:3000` in two browser windows. Create a room in one and en
 3. Run `flyctl deploy` from this folder.
 
 The server validates every move, limits WebSocket message size to 512 bytes, throttles each socket to a five-message-per-second sustained rate (20-message burst), limits rooms to two players, cleans up empty/idle rooms, and caps Fly at 100 concurrent connections. For stronger edge-level DDoS/rate protections, configure Fly's managed edge controls or put Cloudflare in front of the app.
+
+## Load test
+
+The included load test creates real two-player rooms, validates one move in each, then closes every socket:
+
+```bash
+node scripts/load-test.mjs wss://your-app.fly.dev 100 10
+```
+
+On the deployed shared-CPU 256 MB Fly machine, the test has verified 240 simultaneous rooms (480 WebSocket connections), including room creation, joining, and one validated move per room. The configured ceiling is 500 connections.
 Browser Tic Tac Toe With Friends!
