@@ -10,6 +10,38 @@ const rooms = new Map();
 const ROOM_TTL = 30 * 60 * 1000;
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const publicDir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'public');
+const statsFile = process.env.STATS_FILE;
+
+function readStats() {
+  const empty = { xWins: 0, oWins: 0 };
+  if (!statsFile) return empty;
+  try {
+    const saved = JSON.parse(fs.readFileSync(statsFile, 'utf8'));
+    return { xWins: Number.isSafeInteger(saved.xWins) ? saved.xWins : 0, oWins: Number.isSafeInteger(saved.oWins) ? saved.oWins : 0 };
+  } catch (error) {
+    if (error.code !== 'ENOENT') console.error('Could not read game statistics:', error.message);
+    return empty;
+  }
+}
+
+const stats = readStats();
+
+function publicStats() {
+  return { xWins: stats.xWins, xLosses: stats.oWins, oWins: stats.oWins, oLosses: stats.xWins };
+}
+
+function recordWin(mark) {
+  if (mark === 'X') stats.xWins++;
+  else if (mark === 'O') stats.oWins++;
+  if (!statsFile) return;
+  const temporary = `${statsFile}.tmp`;
+  try {
+    fs.writeFileSync(temporary, JSON.stringify(stats));
+    fs.renameSync(temporary, statsFile);
+  } catch (error) {
+    console.error('Could not save game statistics:', error.message);
+  }
+}
 
 function makeCode() {
   let code;
@@ -21,7 +53,7 @@ function makeCode() {
 
 function newRoom() {
   const code = makeCode();
-  const room = { code, board: Array(9).fill(null), turn: 'X', players: new Map(), createdAt: Date.now(), touchedAt: Date.now() };
+  const room = { code, board: Array(9).fill(null), turn: 'X', players: new Map(), createdAt: Date.now(), touchedAt: Date.now(), resultRecorded: false };
   rooms.set(code, room);
   return room;
 }
@@ -64,6 +96,10 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
     return res.end('{"ok":true}');
   }
+  if (url.pathname === '/stats') {
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+    return res.end(JSON.stringify(publicStats()));
+  }
   const file = url.pathname === '/' ? 'index.html' : url.pathname.slice(1);
   const allowed = new Set(['index.html', 'app.js', 'style.css']);
   if (!allowed.has(file)) { res.writeHead(404); return res.end('Not found'); }
@@ -105,12 +141,15 @@ wss.on('connection', ws => {
       const room = rooms.get(ws.room), cell = msg.cell;
       if (!room || !Number.isInteger(cell) || cell < 0 || cell > 8) return;
       if (room.players.size !== 2 || winner(room.board) || room.turn !== ws.mark || room.board[cell]) return;
-      room.board[cell] = ws.mark; room.turn = ws.mark === 'X' ? 'O' : 'X'; room.touchedAt = now; broadcast(room);
+      room.board[cell] = ws.mark; room.turn = ws.mark === 'X' ? 'O' : 'X'; room.touchedAt = now;
+      const result = winner(room.board);
+      if (result && result !== 'draw' && !room.resultRecorded) { room.resultRecorded = true; recordWin(result); }
+      broadcast(room);
     }
     if (msg.type === 'restart') {
       const room = rooms.get(ws.room);
       if (!room || room.players.size !== 2) return;
-      room.board.fill(null); room.turn = 'X'; room.touchedAt = now; broadcast(room);
+      room.board.fill(null); room.turn = 'X'; room.resultRecorded = false; room.touchedAt = now; broadcast(room);
     }
   });
   ws.on('close', () => leave(ws));

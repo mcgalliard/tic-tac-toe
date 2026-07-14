@@ -25,7 +25,8 @@ Open `http://localhost:3000` in two browser windows. Create a room in one and en
 
 1. Sign in with `flyctl auth login`.
 2. Update the `app` value in `fly.toml` if deploying to a different Fly app.
-3. Run `flyctl deploy` from this folder.
+3. Create the persistent all-time scoreboard volume: `flyctl volumes create game_stats --region dfw --size 1`.
+4. Run `flyctl deploy` from this folder.
 
 The server validates every move, limits WebSocket message size to 512 bytes, throttles each socket to a five-message-per-second sustained rate (20-message burst), limits rooms to two players, cleans up empty/idle rooms, and caps Fly at 100 concurrent connections. For stronger edge-level DDoS/rate protections, configure Fly's managed edge controls or put Cloudflare in front of the app.
 

@@ -31,6 +31,7 @@ Clients never decide whether a move is legal. That keeps the game fair even if s
 | One Node.js process | Fast startup and very low overhead for a tiny game. |
 | WebSockets | One persistent connection per player; no polling delay or repeated HTTP overhead. |
 | In-memory rooms | Lowest-latency state updates and no database required. |
+| Fly volume | Persists the global X/O win totals across machine stops and deployments. |
 | One Fly machine | Every player in a room reaches the same memory-resident game state. |
 | Small static frontend | The UI is served by the same process, simplifying deployment. |
 
