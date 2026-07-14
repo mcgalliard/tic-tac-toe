@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tic Tac Toe</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+  <main class="card">
+    <section id="menu">
+      <p class="eyebrow">MULTIPLAYER</p><h1>Tic Tac Toe</h1><p class="sub">A quick game for two.</p>
+      <button id="create">Create a room</button>
+      <div class="or"><span>OR</span></div>
+      <label for="room">Join with a room code</label><div class="join"><input id="room" maxlength="5" placeholder="ABCDE" autocomplete="off"><button id="join">Join</button></div>
+    </section>
+    <section id="game" hidden>
+      <p class="eyebrow">ROOM <strong id="code"></strong></p><h1 id="status">Waiting for opponent…</h1>
+      <div class="board" id="board" aria-label="Tic tac toe board"></div>
+      <button class="secondary" id="restart">Play again</button><button class="link" id="leave">Leave room</button>
+    </section>
+    <p class="notice" id="notice" role="status"></p>
+  </main><script src="/app.js"></script>
+</body></html>
