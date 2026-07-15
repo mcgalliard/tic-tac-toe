@@ -5,9 +5,9 @@ let socket, mark, current;
 async function loadStats() {
   try {
     const stats = await fetch('/stats', { cache: 'no-store' }).then(response => response.ok ? response.json() : Promise.reject());
-    $('#x-wins').textContent = stats.xWins; $('#x-losses').textContent = stats.xLosses;
+    $('#x-wins').textContent = stats.xWins;
+    $('#o-wins').textContent = stats.oWins;
     $('#ties').textContent = stats.ties;
-    $('#o-wins').textContent = stats.oWins; $('#o-losses').textContent = stats.oLosses;
   } catch { /* The game still works if statistics are temporarily unavailable. */ }
 }
 loadStats();
